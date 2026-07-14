@@ -1,0 +1,45 @@
+version: 1
+
+entities:
+  - name: restaurant
+    join_key: restaurant_id
+    description: A DoorDash-style restaurant/merchant.
+
+  - name: courier
+    join_key: courier_id
+    description: A delivery courier.
+
+feature_views:
+  - name: restaurant_prep_time_features
+    entity: restaurant
+    owner: data-eng@example.com
+    ttl_seconds: 3600
+    transformation: restaurant_prep_time_features   # maps to a function in transformations/eta_transforms.py
+    source: orders
+    features:
+      - name: avg_prep_time_minutes_7d
+        dtype: float
+        description: Rolling 7-day average kitchen prep time for this restaurant.
+      - name: order_volume_7d
+        dtype: int
+        description: Rolling 7-day order count for this restaurant.
+      - name: prep_time_stddev_7d
+        dtype: float
+        description: Rolling 7-day standard deviation of prep time (volatility signal).
+
+  - name: courier_performance_features
+    entity: courier
+    owner: data-eng@example.com
+    ttl_seconds: 1800
+    transformation: courier_performance_features
+    source: courier_events
+    features:
+      - name: acceptance_rate_7d
+        dtype: float
+        description: Rolling 7-day order acceptance rate for this courier.
+      - name: avg_delivery_time_minutes_7d
+        dtype: float
+        description: Rolling 7-day average delivery time for this courier.
+      - name: active_deliveries
+        dtype: int
+        description: Current in-flight delivery count (near-real-time, online-only).
